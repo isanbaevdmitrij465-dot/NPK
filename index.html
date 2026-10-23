@@ -1,0 +1,29 @@
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    // Получаем реальный Telegram ID пользователя
+    const userId = tg.initDataUnsafe?.user?.id;
+    const username = tg.initDataUnsafe?.user?.username;
+
+    if (!userId) {
+        alert("Пожалуйста, откройте это приложение из Telegram-бота!");
+    }
+
+    // Пример отправки запроса в админку (проверка на серверной стороне по ADMIN_IDS)
+    async function loadAdminStats() {
+        const response = await fetch(`/api/admin/stats?admin_id=${userId}`);
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('admin-panel').style.display = 'block';
+            console.log("Статистика:", data);
+        } else {
+            console.log("У вас нет прав администратора.");
+        }
+    }
+    
+    if (userId) {
+        loadAdminStats();
+    }
+</script>
