@@ -23,12 +23,13 @@
     <!-- Основной контент -->
     <main class="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full">
-            <h2 class="text-xl font-bold mb-3 text-indigo-400">Добро пожаловать в Web App!</h2>
-            <p class="text-slate-300 text-sm mb-6">
-                Приложение успешно запущено. Все функции искусственного интеллекта готовы к работе.
+            <h2 id="welcome-title" class="text-xl font-bold mb-3 text-indigo-400">Добро пожаловать в Web App!</h2>
+            <p id="welcome-desc" class="text-slate-300 text-sm mb-6">
+                Приложение успешно запущено.
             </p>
             
             <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-sm text-left mb-4">
+                <p><strong>Режим:</strong> <span id="env-mode" class="text-emerald-400">Определение...</span></p>
                 <p><strong>Telegram ID:</strong> <span id="tg-id" class="text-indigo-300"></span></p>
                 <p><strong>Имя:</strong> <span id="tg-name" class="text-indigo-300"></span></p>
             </div>
@@ -39,41 +40,54 @@
         </div>
     </main>
 
-    <!-- Скрипт инициализации -->
+    <!-- Универсальный скрипт определения платформы -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const tg = window.Telegram.WebApp;
             
+            // Инициализируем WebApp, если он доступен
             try {
                 tg.ready();
-                tg.expand();
+                if (tg.expand) tg.expand();
             } catch (e) {
-                console.error("Telegram WebApp не активен:", e);
+                console.log("WebApp не инициализирован (обычный браузер)");
             }
 
-            // Получаем реальные данные пользователя из Telegram
+            // Пытаемся получить данные пользователя из Telegram
             let userId = tg.initDataUnsafe?.user?.id;
             let firstName = tg.initDataUnsafe?.user?.first_name || "";
             let username = tg.initDataUnsafe?.user?.username || "";
+            
+            let environment = "Обычный браузер (Демо-режим)";
 
-            // Если открыто в обычном браузере (где нет данных Telegram) — включаем демо-режим
-            if (!userId) {
-                userId = "DEMO_USER_PC";
+            // Проверяем, запущен ли сайт в Telegram (на телефоне, ПК или в Web-версии)
+            // Telegram всегда передает initData или platform при открытии из бота
+            if (userId || (tg.initData && tg.initData.length > 0) || (tg.platform && tg.platform !== "unknown")) {
+                if (!userId) {
+                    // Если это Telegram, но имя пользователя почему-то скрыто настройками приватности
+                    userId = "Telegram User (ID скрыт)";
+                    firstName = "Пользователь Telegram";
+                }
+                environment = `Telegram (${tg.platform || 'WebApp'})`;
+            } else {
+                // Если это действительно обычный браузер (Chrome, Safari, Yandex и т.д.)
+                userId = "DEMO_ID_99999";
                 firstName = "Гость";
-                username = "browser";
+                username = "browser_user";
             }
 
-            // Выводим информацию на экран
+            // Выводим данные на экран
+            document.getElementById("env-mode").textContent = environment;
             document.getElementById("tg-id").textContent = userId;
-            document.getElementById("tg-name").textContent = `${firstName} (@${username})`;
-            document.getElementById("user-info").textContent = `ID: ${userId}`;
+            document.getElementById("tg-name").textContent = `${firstName} (@${username || 'нет'})`;
+            document.getElementById("user-info").textContent = userId.toString().startsWith("DEMO") ? "Демо" : `ID: ${userId}`;
         });
 
         function closeApp() {
             try {
                 window.Telegram.WebApp.close();
             } catch (e) {
-                alert("Закрытие доступно только внутри Telegram");
+                alert("Закрытие доступно только при запуске из Telegram");
             }
         }
     </script>
