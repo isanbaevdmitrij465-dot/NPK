@@ -1,29 +1,81 @@
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI - Telegram Mini App</title>
+    <!-- Подключаем официальный скрипт Telegram Web App -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
 
-    // Получаем реальный Telegram ID пользователя
-    const userId = tg.initDataUnsafe?.user?.id;
-    const username = tg.initDataUnsafe?.user?.username;
+    <!-- Шапка -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center">
+        <h1 class="font-bold text-lg flex items-center gap-2">
+            🤖 Gemini AI Ассистент
+        </h1>
+        <div id="user-info" class="text-xs text-slate-400 bg-slate-700 px-3 py-1.5 rounded-full">
+            Загрузка...
+        </div>
+    </header>
 
-    if (!userId) {
-        alert("Пожалуйста, откройте это приложение из Telegram-бота!");
-    }
+    <!-- Основной контент (скрыт по умолчанию, пока не пройдем проверку Telegram) -->
+    <main id="app-content" class="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full">
+            <h2 class="text-xl font-bold mb-3 text-indigo-400">Добро пожаловать в Web App!</h2>
+            <p class="text-slate-300 text-sm mb-6">
+                Приложение успешно запущено внутри Telegram. Вы можете использовать все функции искусственного интеллекта.
+            </p>
+            
+            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-sm text-left mb-4">
+                <p><strong>Telegram ID:</strong> <span id="tg-id" class="text-indigo-300"></span></p>
+                <p><strong>Имя:</strong> <span id="tg-name" class="text-indigo-300"></span></p>
+            </div>
 
-    // Пример отправки запроса в админку (проверка на серверной стороне по ADMIN_IDS)
-    async function loadAdminStats() {
-        const response = await fetch(`/api/admin/stats?admin_id=${userId}`);
-        if (response.ok) {
-            const data = await response.json();
-            document.getElementById('admin-panel').style.display = 'block';
-            console.log("Статистика:", data);
+            <button onclick="closeApp()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-xl transition duration-200 shadow-lg shadow-indigo-600/30">
+                Закрыть приложение
+            </button>
+        </div>
+    </main>
+
+    <!-- Ошибка для обычного браузера (показывается, если открыто не в Telegram) -->
+    <main id="error-content" class="flex-1 max-w-xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center hidden">
+        <div class="bg-red-950/40 border border-red-800/50 rounded-2xl p-6 shadow-xl w-full">
+            <h2 class="text-xl font-bold mb-3 text-red-400">Доступ ограничен</h2>
+            <p class="text-slate-300 text-sm">
+                Пожалуйста, откройте это приложение из телеграм бота.
+            </p>
+        </div>
+    </main>
+
+    <!-- Скрипт проверки и инициализации -->
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
+        // Проверяем, действительно ли приложение запущено в Telegram и есть ли ID пользователя
+        const userId = tg.initDataUnsafe?.user?.id;
+        const firstName = tg.initDataUnsafe?.user?.first_name || "";
+        const username = tg.initDataUnsafe?.user?.username || "";
+
+        if (!userId) {
+            // Если открыто в обычном браузере — показываем ошибку и скрываем контент
+            document.getElementById("error-content").classList.remove("hidden");
         } else {
-            console.log("У вас нет прав администратора.");
+            // Если открыто в Telegram — разворачиваем на весь экран и показываем приложение
+            tg.expand();
+            document.getElementById("app-content").classList.remove("hidden");
+            
+            // Заполняем данные
+            document.getElementById("tg-id").textContent = userId;
+            document.getElementById("tg-name").textContent = `${firstName} (@${username})`;
+            document.getElementById("user-info").textContent = `ID: ${userId}`;
         }
-    }
-    
-    if (userId) {
-        loadAdminStats();
-    }
-</script>
+
+        function closeApp() {
+            tg.close();
+        }
+    </script>
+</body>
+</html>
