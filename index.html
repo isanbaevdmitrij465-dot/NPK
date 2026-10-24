@@ -20,12 +20,12 @@
         </div>
     </header>
 
-    <!-- Основной контент (показывается ТОЛЬКО когда приложение открыто в Telegram) -->
-    <main id="app-content" class="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center hidden">
+    <!-- Основной контент -->
+    <main class="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full">
             <h2 class="text-xl font-bold mb-3 text-indigo-400">Добро пожаловать в Web App!</h2>
             <p class="text-slate-300 text-sm mb-6">
-                Приложение успешно запущено внутри Telegram. Все функции искусственного интеллекта доступны.
+                Приложение успешно запущено. Все функции искусственного интеллекта готовы к работе.
             </p>
             
             <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-sm text-left mb-4">
@@ -39,42 +39,42 @@
         </div>
     </main>
 
-    <!-- Ошибка (показывается, если сайт открыт в обычном браузере вне Telegram) -->
-    <main id="error-content" class="flex-1 max-w-xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center hidden">
-        <div class="bg-red-950/40 border border-red-800/50 rounded-2xl p-6 shadow-xl w-full">
-            <h2 class="text-xl font-bold mb-3 text-red-400">Доступ ограничен</h2>
-            <p class="text-slate-300 text-sm">
-                Пожалуйста, откройте это приложение из телеграм бота.
-            </p>
-        </div>
-    </main>
-
-    <!-- Скрипт проверки -->
+    <!-- Скрипт инициализации -->
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-
-        // Проверяем наличие пользователя в Telegram WebApp
-        const userId = tg.initDataUnsafe?.user?.id;
-        const firstName = tg.initDataUnsafe?.user?.first_name || "";
-        const username = tg.initDataUnsafe?.user?.username || "";
-
-        // Если открыто в обычном браузере — показываем экран ошибки
-        if (!userId) {
-            document.getElementById("error-content").classList.remove("hidden");
-        } else {
-            // Если открыто в Telegram — разворачиваем и показываем контент
-            tg.expand();
-            document.getElementById("app-content").classList.remove("hidden");
+        window.addEventListener('DOMContentLoaded', () => {
+            const tg = window.Telegram.WebApp;
             
-            // Заполняем данные пользователя
+            try {
+                tg.ready();
+                tg.expand();
+            } catch (e) {
+                console.error("Telegram WebApp не активен:", e);
+            }
+
+            // Получаем реальные данные пользователя из Telegram
+            let userId = tg.initDataUnsafe?.user?.id;
+            let firstName = tg.initDataUnsafe?.user?.first_name || "";
+            let username = tg.initDataUnsafe?.user?.username || "";
+
+            // Если открыто в обычном браузере (где нет данных Telegram) — включаем демо-режим
+            if (!userId) {
+                userId = "DEMO_USER_PC";
+                firstName = "Гость";
+                username = "browser";
+            }
+
+            // Выводим информацию на экран
             document.getElementById("tg-id").textContent = userId;
             document.getElementById("tg-name").textContent = `${firstName} (@${username})`;
             document.getElementById("user-info").textContent = `ID: ${userId}`;
-        }
+        });
 
         function closeApp() {
-            tg.close();
+            try {
+                window.Telegram.WebApp.close();
+            } catch (e) {
+                alert("Закрытие доступно только внутри Telegram");
+            }
         }
     </script>
 </body>
