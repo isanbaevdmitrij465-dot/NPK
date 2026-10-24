@@ -20,12 +20,12 @@
         </div>
     </header>
 
-    <!-- Основной контент (скрыт по умолчанию, пока не пройдем проверку Telegram) -->
+    <!-- Основной контент (показывается ТОЛЬКО когда приложение открыто в Telegram) -->
     <main id="app-content" class="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center hidden">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full">
             <h2 class="text-xl font-bold mb-3 text-indigo-400">Добро пожаловать в Web App!</h2>
             <p class="text-slate-300 text-sm mb-6">
-                Приложение успешно запущено внутри Telegram. Вы можете использовать все функции искусственного интеллекта.
+                Приложение успешно запущено внутри Telegram. Все функции искусственного интеллекта доступны.
             </p>
             
             <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 text-sm text-left mb-4">
@@ -39,7 +39,7 @@
         </div>
     </main>
 
-    <!-- Ошибка для обычного браузера (показывается, если открыто не в Telegram) -->
+    <!-- Ошибка (показывается, если сайт открыт в обычном браузере вне Telegram) -->
     <main id="error-content" class="flex-1 max-w-xl w-full mx-auto p-4 flex flex-col justify-center items-center text-center hidden">
         <div class="bg-red-950/40 border border-red-800/50 rounded-2xl p-6 shadow-xl w-full">
             <h2 class="text-xl font-bold mb-3 text-red-400">Доступ ограничен</h2>
@@ -49,25 +49,25 @@
         </div>
     </main>
 
-    <!-- Скрипт проверки и инициализации -->
+    <!-- Скрипт проверки -->
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        // Проверяем, действительно ли приложение запущено в Telegram и есть ли ID пользователя
+        // Проверяем наличие пользователя в Telegram WebApp
         const userId = tg.initDataUnsafe?.user?.id;
         const firstName = tg.initDataUnsafe?.user?.first_name || "";
         const username = tg.initDataUnsafe?.user?.username || "";
 
+        // Если открыто в обычном браузере — показываем экран ошибки
         if (!userId) {
-            // Если открыто в обычном браузере — показываем ошибку и скрываем контент
             document.getElementById("error-content").classList.remove("hidden");
         } else {
-            // Если открыто в Telegram — разворачиваем на весь экран и показываем приложение
+            // Если открыто в Telegram — разворачиваем и показываем контент
             tg.expand();
             document.getElementById("app-content").classList.remove("hidden");
             
-            // Заполняем данные
+            // Заполняем данные пользователя
             document.getElementById("tg-id").textContent = userId;
             document.getElementById("tg-name").textContent = `${firstName} (@${username})`;
             document.getElementById("user-info").textContent = `ID: ${userId}`;
